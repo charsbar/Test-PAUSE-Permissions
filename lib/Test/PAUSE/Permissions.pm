@@ -124,8 +124,13 @@ Test::PAUSE::Permissions - tests module permissions in your distribution
 This module is to test if modules in your distribution have proper
 permissions or not. You need to set RELEASE_TESTING to test this.
 
-You might also want to prepare .pause file (you should have one to
-release distributions anyway).
+If your distribution has modules/packages that should not be
+indexed, you might want to generate META files before you run this
+test to provide C<no_index> information to Test::PAUSE::Permissions.
+
+You might also want to prepare C<.pause> file to show who is
+releasing the distribution (you should have one to release
+distributions anyway).
 
 =head1 FUNCTION
 
@@ -134,9 +139,8 @@ This module exports only one function (yet):
 =head2 all_permissions_ok
 
 Looks for packages with L<Parse::LocalDistribution>, and tests
-if you (or the registered author) have proper permissions for them
-by L<PAUSE::Permissions>, which downloads C<06perms.txt> from CPAN
-before testing.
+if you have proper permissions for them by L<PAUSE::Permissions>,
+which downloads C<06perms.txt> from CPAN before testing.
 
 By default, C<all_permissions_ok> looks into C<.pause> file
 to find who is releasing the distribution.
