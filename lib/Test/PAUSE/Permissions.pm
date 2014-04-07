@@ -19,7 +19,7 @@ sub all_permissions_ok {
   # Get your id from .pause
   $author ||= _get_pause_user();
 
-  plan skip_all 'Can't determine who is going to release.' unless $author;
+  plan skip_all => "Can't determine who is going to release." unless $author;
 
   # Get authority from META
   my $meta_authority ||= _get_authority_in_meta();
