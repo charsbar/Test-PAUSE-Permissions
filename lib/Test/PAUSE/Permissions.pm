@@ -132,7 +132,9 @@ This module exports only one function (yet):
 =head2 all_permissions_ok
 
 Looks for packages with L<Parse::LocalDistribution>, and tests
-if you (or the registered author) have proper permissions for them.
+if you (or the registered author) have proper permissions for them
+by L<PAUSE::Permissions>, which downloads C<06perms.txt> from CPAN
+before testing.
 
 By default, C<all_permissions_ok> looks into META files for
 C<x_authority> or C<user> in C<.pause> file, and also each .pm file
@@ -144,6 +146,10 @@ You can also pass an authority as an argument.
     
     # assumes ISHIGAKI has permissions
     all_permissions_ok('ISHIGAKI');
+
+=head1 SEE ALSO
+
+L<PAUSE::Permissions>, L<App::PAUSE::CheckPerms>
 
 =head1 AUTHOR
 
