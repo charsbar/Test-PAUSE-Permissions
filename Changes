@@ -1,5 +1,9 @@
 Revision history for Test-PAUSE-Permissions
 
+0.04 2014/04/08
+  - changed to test permissions only for the author/releaser
+    (miyagawa++)
+
 0.03 2014/04/07
   - make sure to compare pause ids in a case-insensitive way
 
