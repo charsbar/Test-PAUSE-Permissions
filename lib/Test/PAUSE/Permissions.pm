@@ -48,7 +48,7 @@ SKIP:
     }
     my @maintainers = $mp->all_maintainers;
 
-    if (grep { $_ eq $authority } @maintainers) {
+    if (grep { uc $_ eq uc $authority } @maintainers) {
       pass "$package: $authority has a permission";
     }
     else {
