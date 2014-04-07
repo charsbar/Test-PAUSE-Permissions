@@ -7,7 +7,7 @@ use Test::More;
 use PAUSE::Permissions;
 use Parse::LocalDistribution;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our @EXPORT = (@Test::More::EXPORT, qw/all_permissions_ok/);
 
