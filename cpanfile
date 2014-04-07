@@ -1,7 +1,7 @@
 requires 'Config::Identity' => 0;
 requires 'Exporter' => 0;
 requires 'Parse::CPAN::Meta' => 0;
-requires 'PAUSE::Permissions' => "0.06";
+requires 'PAUSE::Permissions' => "0.09";
 requires 'Parse::LocalDistribution' => "0.07"; # for correct provides
 requires 'Parse::PMFile' => "0.15"; # for correct package no_index
 requires 'parent' => 0;
