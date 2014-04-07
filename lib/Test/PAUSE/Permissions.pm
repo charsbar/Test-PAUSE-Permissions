@@ -31,10 +31,12 @@ sub all_permissions_ok {
   # Iterate
 SKIP:
   for my $package (keys %$provides) {
-    my $authority =
+    my $authority = uc(
       $meta_authority
       || _get_authority_in_file($package, $provides->{$package})
-      || $default_authority;
+      || $default_authority
+      || ''
+    );
 
     skip "No authority is available for $package", 1 unless $authority;
 
@@ -68,8 +70,8 @@ sub _get_authority_in_meta {
   # Get authority from META
   my $meta = _parse_meta();
   if ($meta && $meta->{x_authority}) {
-    my $authority = uc $meta->{x_authority};
-    $authority =~ s/^CPAN://;
+    my $authority = $meta->{x_authority};
+    $authority =~ s/^cpan://i;
     return $authority;
   }
 }
@@ -94,8 +96,8 @@ sub _get_authority_in_file {
     $in_pod = /^=(?!cut?)/ ? 1 : /^=cut/ ? 0 : $in_pod;
     next if $in_pod;
 
-    if (/\$(?:${package}::)?AUTHORITY\s*=.+?cpan:([A-Za-z0-9]+)/) {
-      return uc $1;
+    if (/\$(?:${package}::)?AUTHORITY\s*=.+?(?i:cpan):([A-Za-z0-9]+)/) {
+      return $1;
     }
   }
 }
