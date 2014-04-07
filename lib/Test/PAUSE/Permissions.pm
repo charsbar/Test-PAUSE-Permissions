@@ -60,8 +60,8 @@ SKIP:
 sub _get_pause_user {
   # Get authority from ~/.pause
   require Config::Identity::PAUSE;
-  my $config = Config::Identity::PAUSE->load;
-  return $config->{user} if $config && ref $config eq ref {};
+  my %config = Config::Identity::PAUSE->load;
+  return $config{user};
 }
 
 sub _get_authority_in_meta {
