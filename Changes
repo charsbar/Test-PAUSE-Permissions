@@ -1,5 +1,8 @@
 Revision history for Test-PAUSE-Permissions
 
+0.03 2014/04/07
+  - make sure to compare pause ids in a case-insensitive way
+
 0.02 2014/04/07
   - bumped up PAUSE::Permissions requirement to 0.09
   - improved pod
