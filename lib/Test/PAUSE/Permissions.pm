@@ -12,12 +12,14 @@ our $VERSION = '0.03';
 our @EXPORT = (@Test::More::EXPORT, qw/all_permissions_ok/);
 
 sub all_permissions_ok {
-  my $default_authority = shift;
+  my $author = shift;
 
   plan skip_all => 'Set RELEASE_TESTING environmental variable to test this.' unless $ENV{RELEASE_TESTING};
 
   # Get your id from .pause
-  $default_authority ||= _get_pause_user();
+  $author ||= _get_pause_user();
+
+  plan skip_all 'Can't determine who is going to release.' unless $author;
 
   # Get authority from META
   my $meta_authority ||= _get_authority_in_meta();
@@ -34,11 +36,9 @@ SKIP:
     my $authority = uc(
       $meta_authority
       || _get_authority_in_file($package, $provides->{$package})
-      || $default_authority
+      || $author
       || ''
     );
-
-    skip "No authority is available for $package", 1 unless $authority;
 
     my $mp = $perms->module_permissions($package);
 
@@ -48,8 +48,9 @@ SKIP:
     }
     my @maintainers = $mp->all_maintainers;
 
-    if (grep { uc $_ eq uc $authority } @maintainers) {
-      pass "$package: $authority has a permission";
+    # Author should have permissions, regardless of the authority
+    if (grep { uc $_ eq uc $author } @maintainers) {
+      pass "$package: $author has a permission";
     }
     else {
       fail "$package: maintained by ".join ', ', @maintainers;
@@ -124,8 +125,7 @@ This module is to test if modules in your distribution have proper
 permissions or not. You need to set RELEASE_TESTING to test this.
 
 You might also want to prepare .pause file (you should have one to
-release distributions anyway) to declare the default authority
-of your distributions.
+release distributions anyway).
 
 =head1 FUNCTION
 
@@ -138,16 +138,20 @@ if you (or the registered author) have proper permissions for them
 by L<PAUSE::Permissions>, which downloads C<06perms.txt> from CPAN
 before testing.
 
-By default, C<all_permissions_ok> looks into META files for
-C<x_authority> or C<user> in C<.pause> file, and also each .pm file
-for C<$AUTHORITY> variable.
+By default, C<all_permissions_ok> looks into C<.pause> file
+to find who is releasing the distribution.
 
-You can also pass an authority as an argument.
+You can also pass the author as an argument, though this is only
+useful when you generate this test every time you release a
+distribution.
 
     use Test::PAUSE::Permissions;
     
-    # assumes ISHIGAKI has permissions
+    # assumes ISHIGAKI is going to release the distribution
     all_permissions_ok('ISHIGAKI');
+
+C<all_permissions_ok> also looks into META files for <x_authority>,
+and each .pm file for C<$AUTHORITY> variable, for your information.
 
 =head1 SEE ALSO
 
