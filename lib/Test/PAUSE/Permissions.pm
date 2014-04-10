@@ -33,12 +33,7 @@ sub all_permissions_ok {
   # Iterate
 SKIP:
   for my $package (keys %$provides) {
-    my $authority = uc(
-      $meta_authority
-      || _get_authority_in_file($package, $provides->{$package})
-      || $author
-      || ''
-    );
+    my $authority = uc($meta_authority || $author || '');
 
     my $mp = $perms->module_permissions($package);
 
@@ -54,6 +49,16 @@ SKIP:
     }
     else {
       fail "$package: maintained by ".join ', ', @maintainers;
+    }
+
+    # $AUTHORITY has no effect in PAUSE.
+    # just see if $AUTHORITY matches x_authority for information
+    if ($meta_authority) {
+      my $file_authority = _get_authority_in_file($package, $provides->{$package});
+      if ($file_authority && $file_authority ne $meta_authority) {
+        # XXX: should fail?
+        diag "$package: \$AUTHORITY ($file_authority) doesn't match x_authority ($meta_authority)";
+      }
     }
   }
 
