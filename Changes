@@ -1,5 +1,10 @@
 Revision history for Test-PAUSE-Permissions
 
+0.05 2014/04/11
+  - diagnosis if $AUTHORITY matches x_authority (if exists)
+  - requires Parse::LocalDistribution 0.08 to respect MANIFEST.SKIP
+    correctly
+
 0.04 2014/04/08
   - changed to test permissions only for the author/releaser
     (miyagawa++)
