@@ -12,7 +12,8 @@ our $VERSION = '0.05';
 our @EXPORT = (@Test::More::EXPORT, qw/all_permissions_ok/);
 
 sub all_permissions_ok {
-  my $author = shift;
+  my ($author, $opts) = ref $_[0] ? (undef, @_) : @_;
+  $opts ||= {};
 
   plan skip_all => 'Set RELEASE_TESTING environmental variable to test this.' unless $ENV{RELEASE_TESTING};
 
@@ -31,6 +32,10 @@ sub all_permissions_ok {
   my $provides = Parse::LocalDistribution->new->parse();
 
   # Iterate
+  my $saw_errors;
+  my @authorities = grep $_, $author, $meta_authority;
+  my %new_packages;
+  my %involved = map {uc $_ => 1} @authorities;
 SKIP:
   for my $package (keys %$provides) {
     my $authority = uc($meta_authority || $author || '');
@@ -39,9 +44,11 @@ SKIP:
 
     if (!$mp) {
       pass "$package: no one has permissions ($authority should have the first come)";
+      $new_packages{$package} = 1;
       next;
     }
     my @maintainers = $mp->all_maintainers;
+    $involved{uc $_} = 1 for @maintainers;
 
     # Author should have permissions, regardless of the authority
     if (grep { uc $_ eq uc $author } @maintainers) {
@@ -49,6 +56,7 @@ SKIP:
     }
     else {
       fail "$package: maintained by ".join ', ', @maintainers;
+      $saw_errors = 1;
     }
 
     # $AUTHORITY has no effect in PAUSE.
@@ -59,6 +67,26 @@ SKIP:
         # XXX: should fail?
         diag "$package: \$AUTHORITY ($file_authority) doesn't match x_authority ($meta_authority)";
       }
+    }
+  }
+
+  # There are several known IDs that won't maintain any package
+  delete $involved{$_} for qw/ADOPTME HANDOFF NEEDHELP LOCAL/;
+
+  # GH #3: Adding a new module to an established distribution maintained by a large group may cause
+  # an annoying permission problem.
+  if (
+    !$saw_errors  # having errors already means there's someone (ie. you) who can't upload it
+    and %new_packages # no problem if no new module is added
+    and (keys %new_packages < keys %$provides) # no problem if everything is new
+    and (keys %involved > @authorities) # no problem if maintainers are few and everyone gets permissions
+  ) {
+    delete $involved{$_} for @authorities;
+    my $message = "Some of the maintainers of this distributions (@{[sort keys %involved]}) won't have permissions for the following package(s): @{[sort keys %new_packages]}.";
+    if ($opts->{strict}) {
+      fail $message;
+    } else {
+      diag "[WARNING] $message\n(This may or may not a problem, depending on the policy of your team.)";
     }
   }
 
@@ -161,6 +189,35 @@ distribution.
 
 C<all_permissions_ok> also looks into META files for <x_authority>,
 and each .pm file for C<$AUTHORITY> variable, for your information.
+
+=head3 strict mode
+
+You can pass an optional hash to C<all_permissions_ok()>. As of this
+writing, only valid option is C<strict>.
+
+    all_permissions_ok({strict => 1});
+
+If this is set, C<all_permissions_ok> would fail if the following
+conditions should be met:
+
+=over 4
+
+=item the distribution is maintained by more than one person
+(or two people if C<x_authority> is set).
+
+=item the uploader has added a new indexable package.
+
+=item and the distribution itself is not newly created.
+
+=back
+
+In the case above, if the uploader uploads the distribution,
+permission to the new package is only given to the uploader
+(and the author specified in C<x_authority> if applicable),
+and other maintainers will not be able to upload the distribution
+appropriately until they are given permission to the
+new package. Strict mode is to prevent such an (accidental)
+addtion so that everyone in a team can upload without a problem.
 
 =head1 SEE ALSO
 

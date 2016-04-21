@@ -7,6 +7,8 @@ README
 t/00_load.t
 xt/10_self.t
 xt/10_self_with_id.t
+xt/10_strict_self.t
 xt/20_worepan.t
+xt/30_authority_mismatch.t
 xt/99_pod.t
 xt/99_podcoverage.t
