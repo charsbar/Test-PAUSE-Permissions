@@ -35,7 +35,7 @@ sub all_permissions_ok {
   my $saw_errors;
   my @authorities = grep $_, $author, $meta_authority;
   my %new_packages;
-  my %involved = map {uc $_ => 1} @authorities;
+  my %dist_maintainers = map {uc $_ => 1} @authorities;
 SKIP:
   for my $package (keys %$provides) {
     my $authority = uc($meta_authority || $author || '');
@@ -47,15 +47,15 @@ SKIP:
       $new_packages{$package} = 1;
       next;
     }
-    my @maintainers = $mp->all_maintainers;
-    $involved{uc $_} = 1 for @maintainers;
+    my @module_maintainers = $mp->all_maintainers;
+    $dist_maintainers{uc $_} = 1 for @module_maintainers;
 
     # Author should have permissions, regardless of the authority
-    if (grep { uc $_ eq uc $author } @maintainers) {
+    if (grep { uc $_ eq uc $author } @module_maintainers) {
       pass "$package: $author has a permission";
     }
     else {
-      fail "$package: maintained by ".join ', ', @maintainers;
+      fail "$package: maintained by ".join ', ', @module_maintainers;
       $saw_errors = 1;
     }
 
@@ -71,7 +71,7 @@ SKIP:
   }
 
   # There are several known IDs that won't maintain any package
-  delete $involved{$_} for qw/ADOPTME HANDOFF NEEDHELP LOCAL/;
+  delete $dist_maintainers{$_} for qw/ADOPTME HANDOFF NEEDHELP LOCAL/;
 
   # GH #3: Adding a new module to an established distribution maintained by a large group may cause
   # an annoying permission problem.
@@ -79,14 +79,14 @@ SKIP:
     !$saw_errors  # having errors already means there's someone (ie. you) who can't upload it
     and %new_packages # no problem if no new module is added
     and (keys %new_packages < keys %$provides) # no problem if everything is new
-    and (keys %involved > @authorities) # no problem if maintainers are few and everyone gets permissions
+    and (keys %dist_maintainers > @authorities) # no problem if maintainers are few and everyone gets permissions
   ) {
-    delete $involved{$_} for @authorities;
-    my $message = "Some of the maintainers of this distributions (@{[sort keys %involved]}) won't have permissions for the following package(s): @{[sort keys %new_packages]}.";
+    delete $dist_maintainers{$_} for @authorities;
+    my $message = "Some of the maintainers of this distribution (@{[sort keys %dist_maintainers]}) won't have permissions for the following package(s): @{[sort keys %new_packages]}.";
     if ($opts->{strict}) {
       fail $message;
     } else {
-      diag "[WARNING] $message\n(This may or may not a problem, depending on the policy of your team.)";
+      diag "[WARNING] $message\n(This may or may not be a problem, depending on the policy of your team.)";
     }
   }
 
