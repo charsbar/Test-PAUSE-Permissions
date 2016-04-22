@@ -28,6 +28,8 @@ sub all_permissions_ok {
   # Prepare 06perms for testing
   my $perms = PAUSE::Permissions->new;
 
+  local $Parse::PMFile::ALLOW_DEV_VERSION = 1 if $opts->{dev};
+
   # Get packages (respecting no_index)
   my $provides = Parse::LocalDistribution->new->parse();
 
@@ -190,10 +192,10 @@ distribution.
 C<all_permissions_ok> also looks into META files for <x_authority>,
 and each .pm file for C<$AUTHORITY> variable, for your information.
 
-=head3 strict mode
+You can pass an optional hash reference to C<all_permissions_ok()>
+to change its behavior.
 
-You can pass an optional hash to C<all_permissions_ok()>. As of this
-writing, only valid option is C<strict>.
+=head3 strict mode
 
     all_permissions_ok({strict => 1});
 
@@ -218,6 +220,14 @@ and other maintainers will not be able to upload the distribution
 appropriately until they are given permission to the
 new package. Strict mode is to prevent such an (accidental)
 addtion so that everyone in a team can upload without a problem.
+
+=head3 test also modules with a developer version
+
+    all_permissions_ok({dev => 1});
+
+This module ignores modules that won't be indexed (namely those
+that have a version number with an underscore in it) by default.
+If you do want to test them, set C<dev> to true.
 
 =head1 SEE ALSO
 
