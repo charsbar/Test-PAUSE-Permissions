@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use parent 'Exporter';
 use Test::More;
-use PAUSE::Permissions;
 use Parse::LocalDistribution;
 
 our $VERSION = '0.06';
@@ -25,13 +24,13 @@ sub all_permissions_ok {
   # Get authority from META
   my $meta_authority ||= _get_authority_in_meta();
 
-  # Prepare 06perms for testing
-  my $perms = PAUSE::Permissions->new;
-
   local $Parse::PMFile::ALLOW_DEV_VERSION = 1 if $opts->{dev};
 
   # Get packages (respecting no_index)
   my $provides = Parse::LocalDistribution->new->parse();
+
+  # Get maintainers from 06perms or MetaCPAN
+  my $maintainers = _get_maintainers($opts->{metacpan}, [keys %$provides]);
 
   # Iterate
   my $saw_errors;
@@ -42,22 +41,21 @@ SKIP:
   for my $package (keys %$provides) {
     my $authority = uc($meta_authority || $author || '');
 
-    my $mp = $perms->module_permissions($package);
+    my $module_maintainers = $maintainers->{$package};
 
-    if (!$mp) {
+    if (!$module_maintainers) {
       pass "$package: no one has permissions ($authority should have the first come)";
       $new_packages{$package} = 1;
       next;
     }
-    my @module_maintainers = $mp->all_maintainers;
-    $dist_maintainers{uc $_} = 1 for @module_maintainers;
+    $dist_maintainers{uc $_} = 1 for @$module_maintainers;
 
     # Author should have permissions, regardless of the authority
-    if (grep { uc $_ eq uc $author } @module_maintainers) {
+    if (grep { uc $_ eq uc $author } @$module_maintainers) {
       pass "$package: $author has a permission";
     }
     else {
-      fail "$package: maintained by ".join ', ', @module_maintainers;
+      fail "$package: maintained by ".join ', ', @$module_maintainers;
       $saw_errors = 1;
     }
 
@@ -135,6 +133,29 @@ sub _get_authority_in_file {
     if (/\$(?:${package}::)?AUTHORITY\s*=.+?(?i:cpan):([A-Za-z0-9]+)/) {
       return $1;
     }
+  }
+}
+
+sub _get_maintainers {
+  my ($is_metacpan, $modules) = @_;
+  if ($is_metacpan) {
+    require PAUSE::Permissions::MetaCPAN;
+    my $perms = PAUSE::Permissions::MetaCPAN->new->get(modules => $modules);
+    my %maintainers;
+    for my $module (@$modules) {
+      $maintainers{$module} = $perms->{$module}
+        ? [ $perms->{$module}{owner}, @{$perms->{$module}{co_maintainers}} ] : undef;
+    }
+    \%maintainers;
+  } else {
+    require PAUSE::Permissions;
+    my $file = PAUSE::Permissions->new;
+    my %maintainers;
+    for my $module (@$modules) {
+      my $mp = $file->module_permissions($module);
+      $maintainers{$module} = $mp ? [$mp->all_maintainers] : undef;
+    }
+    \%maintainers;
   }
 }
 
@@ -228,6 +249,13 @@ addtion so that everyone in a team can upload without a problem.
 This module ignores modules that won't be indexed (namely those
 that have a version number with an underscore in it) by default.
 If you do want to test them, set C<dev> to true.
+
+=head3 use MetaCPAN API for testing permissions
+
+    all_permissions_ok({metacpan => 1});
+
+If C<metacpan> is true, this module tests permissions via MetaCPAN API
+instead of C<06perms.txt> using L<PAUSE::Permissions::MetaCPAN>.
 
 =head1 SEE ALSO
 
