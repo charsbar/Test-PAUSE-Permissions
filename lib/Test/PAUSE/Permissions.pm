@@ -137,9 +137,11 @@ sub _get_authority_in_file {
 }
 
 sub _get_maintainers {
-  my ($is_metacpan, $modules) = @_;
-  if ($is_metacpan) {
-    require PAUSE::Permissions::MetaCPAN;
+  my ($use_metacpan, $modules) = @_;
+  if ($use_metacpan) {
+    eval { require PAUSE::Permissions::MetaCPAN };
+    die "To use MetaCPAN permission API, "
+      . "you need to install PAUSE::Permissions::MetaCPAN, $@" if $@;
     my $perms = PAUSE::Permissions::MetaCPAN->new->get(modules => $modules);
     my %maintainers;
     for my $module (@$modules) {
