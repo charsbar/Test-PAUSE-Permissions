@@ -30,7 +30,8 @@ sub all_permissions_ok {
   my $provides = Parse::LocalDistribution->new->parse();
 
   # Get maintainers from 06perms or MetaCPAN
-  my $maintainers = _get_maintainers($opts->{metacpan}, [keys %$provides]);
+  my $use_metacpan = $opts->{metacpan} || $ENV{TEST_PAUSE_PERMISSIONS_METACPAN};
+  my $maintainers = _get_maintainers($use_metacpan, [keys %$provides]);
 
   # Iterate
   my $saw_errors;
