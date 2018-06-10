@@ -12,3 +12,8 @@ on test => sub {
 on configure => sub {
   requires 'ExtUtils::MakeMaker::CPANfile' => '0.04';
 };
+on develop => sub {
+  requires 'WorePAN', '0.09';
+  requires 'File::pushd';
+  requires 'JSON::PP';
+};
