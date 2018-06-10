@@ -259,6 +259,8 @@ If you do want to test them, set C<dev> to true.
 
 If C<metacpan> is true, this module tests permissions via MetaCPAN API
 instead of C<06perms.txt> using L<PAUSE::Permissions::MetaCPAN>.
+You can also set an environment variable C<TEST_PAUSE_PERMISSIONS_METACPAN> true
+to use MetaCPAN API.
 
 =head1 SEE ALSO
 
