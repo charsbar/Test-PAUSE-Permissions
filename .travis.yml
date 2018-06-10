@@ -4,6 +4,6 @@ perl:
   - "5.10"
   - "5.26"
 install:
-  - cpanm --with-develop --installdeps --notest --quiet .
+  - cpanm --with-recommends --with-develop --installdeps --notest --quiet .
 script:
   - TEST_POD=1 prove -l t xt
